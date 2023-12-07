@@ -11,24 +11,32 @@
     }
     class Day
     {
-        private int id; 
+        private string id; 
         // either 
         // 1. date in YYYYMMDD format
         // 2. something 1 - 14
         // ... as key for hashmap in sprint
 
-        private DateTime dueDate;
-        public Dictionary<int, TaskComposite> rootTasks { get; } = new Dictionary<int, TaskComposite>();
+        private DateOnly dueDate;
+        public Dictionary<string, TaskComposite> rootTasks { get; } = new Dictionary<string, TaskComposite>();
 
-        public Day(DateTime dueDate)
+        public Day(DateOnly dueDate)
         {
             this.dueDate = dueDate;
+            this.id = dueDate.ToString("yyyyMMdd");
         }
         public void AddTask(TaskComposite task)
         {
             rootTasks.Add(id, task);
         }
-
+        public string GetId()
+        {
+            return this.id;
+        }
+        public Dictionary<string, TaskComposite> GetPrimaryTasks()
+        {
+            return this.rootTasks;
+        }
     }
     // Component
     abstract class TaskComponent
@@ -309,6 +317,11 @@
             Console.WriteLine("");
             // iterate
             root.Iterate();
+
+            Day m = new Day(new DateOnly(2023,12,11));
+            m.AddTask(root);
+            Console.WriteLine(m.GetId());
+            Console.WriteLine(m.GetPrimaryTasks());
 
             Console.ReadLine();
         }
