@@ -1,4 +1,7 @@
-﻿namespace SprintTracker2
+﻿using System.ComponentModel;
+using System.Runtime.CompilerServices;
+
+namespace SprintTracker2
 {
     class Sprint
     {
@@ -34,6 +37,7 @@
                 Console.WriteLine($"Day ID: {dayId}, Due Date: {dueDateString}");
             }
         }
+
     }
     class Day
     {
@@ -68,12 +72,89 @@
             return this.dueDate;
         }
     }
+
+    class Issue
+    {
+        public enum Status
+        {
+            New,
+            Updated,
+            FixInProgress,
+            Resolved
+        }
+
+        private string name;
+        private string desc;
+        //private DateOnly dateRaised;
+        private Status currStatus; 
+
+        public Issue(string title, string desc, Status status)
+        {
+            this.name = title;
+            this.desc = desc;
+            this.currStatus = status;
+        }
+
+        public string GetName()
+        {
+            return this.name;
+        }
+
+        public void SetName(string newName)
+        {
+            this.name = newName;
+        }
+
+        public string GetDesc()
+        {
+            return this.desc;
+        }
+
+        public void SetDesc(string newDesc)
+        {
+            this.desc = newDesc;
+        }
+
+        public Status GetStatus()
+        {
+            return this.currStatus;
+        }
+
+        public void SetStatus(Status newStatus)
+        {
+            this.currStatus = newStatus;
+            //ex:
+            //myIssue.SetStatus(Issue.Status.New);
+        }
+
+
+    }
+
+    class TaskDecorator : TaskComponent
+    {
+        TaskComponent task;
+
+        public TaskDecorator(TaskComponent decoratedTask)
+        {
+            this.task = decoratedTask;
+        }
+        public override void Iterate()
+        {
+
+        }
+    }
+
     // Component
     abstract class TaskComponent
     {
         private int id;
         private string name;
-        private TaskComponent parent;
+        private TaskComponent? parent;
+        public List<Issue> issues { get; set; } = new List<Issue>();
+
+        public TaskComponent()
+        {
+        }
 
         public int GetId()
         {
@@ -91,7 +172,7 @@
         {
             this.name = newName;
         }
-        public TaskComponent GetParent()
+        public TaskComponent? GetParent()
         {
             return this.parent;
         }
@@ -99,6 +180,23 @@
         {
             this.parent = parent;
         }
+        public void AddIssue(Issue newIssueReport)
+        {
+            this.issues.Add(newIssueReport);
+        }
+        public List<Issue> GetAllIssues()
+        {
+            // Check if the task has issues
+            if (this.issues == null || this.issues.Count == 0)
+            {
+                // No issues, return an empty list or null based on your preference
+                return new List<Issue>();  // or return null;
+            }
+
+            // Return the list of issues
+            return this.issues;
+        }
+
         //public abstract void Execute();
         public abstract void Iterate();
     }
@@ -278,52 +376,6 @@
     {
         static void Main(string[] args)
         {
-            /*// Depth 1
-            TaskComposite rootTask = new TaskComposite();
-
-            // Depth 2
-            TaskComposite compositeTask1 = new TaskComposite();
-            rootTask.AddTask(compositeTask1);
-
-            TaskComponent taskA1 = new Task("Task A1");
-            compositeTask1.AddTask(taskA1);
-
-            TaskComponent taskB1 = new Task("Task B1");
-            compositeTask1.AddTask(taskB1);
-
-            // Depth 3
-            TaskComposite compositeTask2 = new TaskComposite();
-            compositeTask1.AddTask(compositeTask2);
-
-            TaskComponent taskA2 = new Task("Task A2");
-            compositeTask2.AddTask(taskA2);
-
-            TaskComponent taskB2 = new Task("Task B2");
-            compositeTask2.AddTask(taskB2);
-
-            // Depth 4
-            TaskComponent task1 = new Task("Task 1");
-            compositeTask2.AddTask(task1);
-
-            TaskComponent task2 = new Task("Task 2");
-            compositeTask2.AddTask(task2);
-
-            // Executing tasks
-            rootTask.Execute();
-
-            // Output:
-            // Executing composite task:
-            //   Executing composite task:
-            //     Executing task: Task A1
-            //     Executing task: Task B1
-            //     Executing composite task:
-            //       Executing task: Task A2
-            //       Executing task: Task B2
-            //       Executing task: Task 1
-            //       Executing task: Task 2
-
-            rootTask.IterateThroughChildren();*/
-
             // root
             TaskComposite root = new TaskComposite("Root");
             //root.SetId();
@@ -364,6 +416,17 @@
             Console.WriteLine($"Leaf Task ID: {leaf2.GetId()}");
 
             Console.WriteLine("Check parent");
+            TaskComponent? parentTask = root.GetParent();
+            if (parentTask != null)
+            {
+                // Handle the case where the task has a parent
+                Console.WriteLine(parentTask.GetId());
+            }
+            else
+            {
+                // Handle the case where the task is a root-level task (no parent)
+                Console.WriteLine("Root task has no parent.");
+            }
             //Console.WriteLine(root.GetParent().GetId()); // null error
             Console.WriteLine(child.GetParent().GetId());
             Console.WriteLine(child2.GetParent().GetId());
@@ -390,6 +453,21 @@
             Sprint s = new Sprint(new DateOnly(2023,11,29));
             s.PrintDayIdsAndDates();
 
+            Console.WriteLine("\nIssue");
+            Issue i1 = new Issue("Blocker", "cannot progess", Issue.Status.Resolved);
+            Issue i2 = new Issue("Deprecated Dependencies", "desc", Issue.Status.Updated);
+            Issue i3 = new Issue("Blocker 2", "desc", Issue.Status.New);
+
+            child.AddIssue(i1);
+            child.AddIssue(i2);
+            child.AddIssue(i3);
+
+            List<Issue> li = child.GetAllIssues();
+            foreach (Issue i in li)
+            {
+                Console.WriteLine("Task " + child.GetId() + "'s issue " + i.GetName() + ", " + i.GetStatus().ToString() + ", " + i.GetDesc());
+            }
+            
             Console.ReadLine();
         }
     }
