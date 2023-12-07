@@ -2,11 +2,37 @@
 {
     class Sprint
     {
+        private DateOnly startDate;
         public Dictionary<int, Day> Days { get; } = new Dictionary<int, Day>();
 
-        public Sprint()
+        public Sprint(DateOnly startDate)
         {
-            
+            this.startDate = startDate;
+            this.CalculateDays();
+        }
+
+        private void CalculateDays()
+        {
+            // Fixed sprint duration of 14 days
+            for (int i = 1; i <= 14; i++)
+            {
+                DateOnly dueDate = startDate.AddDays(i - 1); // Subtract 1 to start from day 1
+                Day day = new Day(dueDate);
+                Days.Add(i, day); // Use the actual day id from the loop index
+            }
+        }
+
+        public void PrintDayIdsAndDates()
+        {
+            foreach (var dayEntry in Days)
+            {
+                int dayId = dayEntry.Key;
+                Day day = dayEntry.Value;
+                string dayIdString = day.GetId();
+                string dueDateString = day.GetDate().ToString("yyyyMMdd");
+
+                Console.WriteLine($"Day ID: {dayId}, Due Date: {dueDateString}");
+            }
         }
     }
     class Day
@@ -36,6 +62,10 @@
         public List<TaskComposite> GetPrimaryTasks()
         {
             return this.rootTasks;
+        }
+        public DateOnly GetDate()
+        {
+            return this.dueDate;
         }
     }
     // Component
@@ -318,7 +348,7 @@
             // iterate
             root.Iterate();
 
-            Day m = new Day(new DateOnly(2023,12,11));
+            Day m = new Day(new DateOnly(2023,12,4));
             m.AddTask(root);
             Console.WriteLine(m.GetId());
             List<TaskComposite> tasklist = m.GetPrimaryTasks();
@@ -326,6 +356,9 @@
             {
                 Console.WriteLine(t.GetId() + t.GetName());
             }
+
+            Sprint s = new Sprint(new DateOnly(2023,11,29));
+            s.PrintDayIdsAndDates();
 
             Console.ReadLine();
         }
