@@ -363,6 +363,14 @@
             Console.WriteLine($"Leaf Task ID: {leaf.GetId()}");
             Console.WriteLine($"Leaf Task ID: {leaf2.GetId()}");
 
+            Console.WriteLine("Check parent");
+            //Console.WriteLine(root.GetParent().GetId()); // null error
+            Console.WriteLine(child.GetParent().GetId());
+            Console.WriteLine(child2.GetParent().GetId());
+            Console.WriteLine(grandchild.GetParent().GetId());
+            Console.WriteLine(grandchild3.GetParent().GetId());
+            Console.WriteLine(leaf.GetParent().GetId());
+            Console.WriteLine(leaf2.GetParent().GetId());
 
             Console.WriteLine("root");
             root.Iterate();
