@@ -18,22 +18,22 @@
         // ... as key for hashmap in sprint
 
         private DateOnly dueDate;
-        public Dictionary<string, TaskComposite> rootTasks { get; } = new Dictionary<string, TaskComposite>();
+        public List<TaskComposite> rootTasks { get; } = new List<TaskComposite>();
 
         public Day(DateOnly dueDate)
         {
             this.dueDate = dueDate;
-            this.id = dueDate.ToString("yyyyMMdd");
+            //this.id = dueDate.ToString("yyyyMMdd");
         }
         public void AddTask(TaskComposite task)
         {
-            rootTasks.Add(id, task);
+            rootTasks.Add(task);
         }
         public string GetId()
         {
             return this.id;
         }
-        public Dictionary<string, TaskComposite> GetPrimaryTasks()
+        public List<TaskComposite> GetPrimaryTasks()
         {
             return this.rootTasks;
         }
@@ -321,7 +321,11 @@
             Day m = new Day(new DateOnly(2023,12,11));
             m.AddTask(root);
             Console.WriteLine(m.GetId());
-            Console.WriteLine(m.GetPrimaryTasks());
+            List<TaskComposite> tasklist = m.GetPrimaryTasks();
+            foreach (TaskComposite t in tasklist)
+            {
+                Console.WriteLine(t.GetId() + t.GetName());
+            }
 
             Console.ReadLine();
         }
