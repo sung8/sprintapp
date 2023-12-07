@@ -99,7 +99,8 @@
         {
             this.parent = parent;
         }
-        public abstract void Execute();
+        //public abstract void Execute();
+        public abstract void Iterate();
     }
 
     // Leaf
@@ -112,9 +113,13 @@
             this.SetName(name); 
         }
 
-        public override void Execute()
+        /*public override void Execute()
         {
             Console.WriteLine("Executing task " + this.GetId() + ": " + this.GetName());
+        }*/
+        public override void Iterate()
+        {
+            // Tasks have no children - do nothing
         }
     }
 
@@ -135,6 +140,9 @@
             task.SetParent(this);
             subtasks.Add(task);
             task.SetId();
+            /*child.Parent = this;
+            Children.Add(child);*/
+
         }
 
         public void RemoveChild(TaskComponent task)
@@ -142,17 +150,25 @@
             subtasks.Remove(task);
         }
 
-        public override void Execute()
+        /*public override void Execute()
         {
             Console.WriteLine("Executing task " + this.GetId() + ": " + this.GetName());
             foreach (var task in subtasks)
             {
                 task.Execute();
             }
+        }*/
+        public override void Iterate()
+        {
+            Console.WriteLine(GetId() + ": " + GetName());
+
+            foreach (var child in subtasks)
+            {
+                child.Iterate();
+            }
         }
 
-
-        public void Iterate()
+        /*public void Iterate()
         {
             Console.WriteLine("Iterating through all children:");
             foreach (var child in subtasks)
@@ -178,7 +194,7 @@
                     }
                 }
             }
-        }
+        }*/
         /*private void Visit(TaskComponent task, HashSet<int> visitedTasks)
         {
             if (visitedTasks.Contains(task.GetId()))
@@ -340,13 +356,19 @@
             // Print out IDs
             Console.WriteLine($"Root ID: {root.GetId()}");
             Console.WriteLine($"Child ID: {child.GetId()}");
+            Console.WriteLine($"Child ID: {child2.GetId()}");
             Console.WriteLine($"Grand Child ID: {grandchild.GetId()}");
+            Console.WriteLine($"Grand Child ID: {grandchild2.GetId()}");
+            Console.WriteLine($"Grand Child ID: {grandchild3.GetId()}");
             Console.WriteLine($"Leaf Task ID: {leaf.GetId()}");
+            Console.WriteLine($"Leaf Task ID: {leaf2.GetId()}");
 
 
-            Console.WriteLine("");
-            // iterate
+            Console.WriteLine("root");
             root.Iterate();
+
+            Console.WriteLine("\nchild2");
+            child2.Iterate();
 
             Day m = new Day(new DateOnly(2023,12,4));
             m.AddTask(root);
