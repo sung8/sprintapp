@@ -1,8 +1,12 @@
 {
   "version": 2,
-  "dgSpecHash": "PD9vPvTNli9jgH2DTS8fapOq5YUr5Zzmi56csyOk88/MW8apNmLVeNIA5bbYImOZcFQb7q0Ym5F5LWcNR1iszw==",
+  "dgSpecHash": "eNsPEzPjUWXTeMXllliK2Ie1G1Qxb0UpIxUGZ/FdsSCSWzAAHULA/gMTo3JXDjEbPrD7XpvNi9Qy27MQMqb0Nw==",
   "success": true,
   "projectFilePath": "C:\\SWENG-421-LABS\\Final-Project-Sprint-Tracker\\SprintTracker2\\SprintTracker2.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "C:\\Users\\Lena\\.nuget\\packages\\automaticgraphlayout\\1.1.12\\automaticgraphlayout.1.1.12.nupkg.sha512",
+    "C:\\Users\\Lena\\.nuget\\packages\\automaticgraphlayout.drawing\\1.1.12\\automaticgraphlayout.drawing.1.1.12.nupkg.sha512",
+    "C:\\Users\\Lena\\.nuget\\packages\\automaticgraphlayout.graphviewergdi\\1.1.12\\automaticgraphlayout.graphviewergdi.1.1.12.nupkg.sha512"
+  ],
   "logs": []
 }

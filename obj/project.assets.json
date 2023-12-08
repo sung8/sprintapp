@@ -1,11 +1,88 @@
 {
   "version": 3,
   "targets": {
-    "net7.0": {}
+    "net7.0-windows7.0": {
+      "AutomaticGraphLayout/1.1.12": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.0/AutomaticGraphLayout.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/AutomaticGraphLayout.dll": {}
+        }
+      },
+      "AutomaticGraphLayout.Drawing/1.1.12": {
+        "type": "package",
+        "dependencies": {
+          "AutomaticGraphLayout": "1.1.12"
+        },
+        "compile": {
+          "lib/netstandard2.0/AutomaticGraphLayout.Drawing.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/AutomaticGraphLayout.Drawing.dll": {}
+        }
+      },
+      "AutomaticGraphLayout.GraphViewerGDI/1.1.12": {
+        "type": "package",
+        "dependencies": {
+          "AutomaticGraphLayout.Drawing": "1.1.12"
+        },
+        "compile": {
+          "lib/net61/Microsoft.Msagl.GraphViewerGdi.dll": {}
+        },
+        "runtime": {
+          "lib/net61/Microsoft.Msagl.GraphViewerGdi.dll": {}
+        }
+      }
+    }
   },
-  "libraries": {},
+  "libraries": {
+    "AutomaticGraphLayout/1.1.12": {
+      "sha512": "Txc1uVLwnKemnPWmGSAVSZaBR95VTxU7/LfarvSOuJC6KuwPW4xrLpIGTOUbCXYZiSnkxN2jiC3FwX/2051+9g==",
+      "type": "package",
+      "path": "automaticgraphlayout/1.1.12",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "automaticgraphlayout.1.1.12.nupkg.sha512",
+        "automaticgraphlayout.nuspec",
+        "lib/netstandard2.0/AutomaticGraphLayout.dll"
+      ]
+    },
+    "AutomaticGraphLayout.Drawing/1.1.12": {
+      "sha512": "LYDrw069a2TGFJkALLyKLXISdMlWNiPiyXetVbzRlEpxhmBUt7BmbIy5pBSvaVdSXD9xkNe4yj/M3cT4mwH65w==",
+      "type": "package",
+      "path": "automaticgraphlayout.drawing/1.1.12",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "automaticgraphlayout.drawing.1.1.12.nupkg.sha512",
+        "automaticgraphlayout.drawing.nuspec",
+        "lib/netstandard2.0/AutomaticGraphLayout.Drawing.dll"
+      ]
+    },
+    "AutomaticGraphLayout.GraphViewerGDI/1.1.12": {
+      "sha512": "HqK/oDFK2eQmbhIqqwSXOpODqLKfev1+P0Dj1LdNr60vWhwWUMvIrsTeI9LO92YoplmhlQjz8UA7375ChHFHGA==",
+      "type": "package",
+      "path": "automaticgraphlayout.graphviewergdi/1.1.12",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "automaticgraphlayout.graphviewergdi.1.1.12.nupkg.sha512",
+        "automaticgraphlayout.graphviewergdi.nuspec",
+        "lib/net472/Microsoft.Msagl.GraphViewerGdi.dll",
+        "lib/net61/Microsoft.Msagl.GraphViewerGdi.dll",
+        "lib/netcoreapp3.1/Microsoft.Msagl.GraphViewerGdi.dll"
+      ]
+    }
+  },
   "projectFileDependencyGroups": {
-    "net7.0": []
+    "net7.0-windows7.0": [
+      "AutomaticGraphLayout >= 1.1.12",
+      "AutomaticGraphLayout.Drawing >= 1.1.12",
+      "AutomaticGraphLayout.GraphViewerGDI >= 1.1.12"
+    ]
   },
   "packageFolders": {
     "C:\\Users\\Lena\\.nuget\\packages\\": {},
@@ -29,14 +106,14 @@
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
-        "net7.0"
+        "net7.0-windows"
       ],
       "sources": {
-        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {}
+        "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
-        "net7.0": {
-          "targetAlias": "net7.0",
+        "net7.0-windows7.0": {
+          "targetAlias": "net7.0-windows",
           "projectReferences": {}
         }
       },
@@ -47,8 +124,22 @@
       }
     },
     "frameworks": {
-      "net7.0": {
-        "targetAlias": "net7.0",
+      "net7.0-windows7.0": {
+        "targetAlias": "net7.0-windows",
+        "dependencies": {
+          "AutomaticGraphLayout": {
+            "target": "Package",
+            "version": "[1.1.12, )"
+          },
+          "AutomaticGraphLayout.Drawing": {
+            "target": "Package",
+            "version": "[1.1.12, )"
+          },
+          "AutomaticGraphLayout.GraphViewerGDI": {
+            "target": "Package",
+            "version": "[1.1.12, )"
+          }
+        },
         "imports": [
           "net461",
           "net462",
@@ -63,6 +154,9 @@
         "frameworkReferences": {
           "Microsoft.NETCore.App": {
             "privateAssets": "all"
+          },
+          "Microsoft.WindowsDesktop.App": {
+            "privateAssets": "none"
           }
         },
         "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.401\\RuntimeIdentifierGraph.json"
