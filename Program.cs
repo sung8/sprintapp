@@ -325,15 +325,15 @@ namespace SprintTracker2
                 this.SetName(name);
             }
 
-            /*public override void Execute()
-            {
-                Console.WriteLine("Executing task " + this.GetId() + ": " + this.GetName());
-            }*/
-            public override void Iterate()
-            {
-                // Tasks have no children - do nothing
-            }
+        /*public override void Execute()
+        {
+            Console.WriteLine("Executing task " + this.GetId() + ": " + this.GetName());
+        }*/
+        public override void Iterate()
+        {
+            Console.WriteLine($"{GetId()}: {GetName()} (Task)");
         }
+    }
 
         // Composite
         class TaskComposite : TaskComponent
@@ -362,89 +362,26 @@ namespace SprintTracker2
                 subtasks.Remove(task);
             }
 
-            /*public override void Execute()
-            {
-                Console.WriteLine("Executing task " + this.GetId() + ": " + this.GetName());
-                foreach (var task in subtasks)
-                {
-                    task.Execute();
-                }
-            }*/
-            public override void Iterate()
-            {
-                Console.WriteLine(GetId() + ": " + GetName());
-
-                foreach (var child in subtasks)
-                {
-                    child.Iterate();
-                }
-            }
-
-            /*public void Iterate()
-            {
-                Console.WriteLine("Iterating through all children:");
-                foreach (var child in subtasks)
-                {
-                    // Only iterate through the children, not ourselves (root task)
-                    if (child != this)
-                    {
-                        Visit(child);
-                    }
-                }
-            }
-
-            private void Visit(TaskComponent task)
+        /*public override void Execute()
+        {
+            Console.WriteLine("Executing task " + this.GetId() + ": " + this.GetName());
+            foreach (var task in subtasks)
             {
                 task.Execute();
-                if (task is TaskComposite composite)
-                {
-                    foreach (var child in composite.subtasks)
-                    {
-                        if (child != composite)
-                        {
-                            Visit(child);
-                        }
-                    }
-                }
-            }*/
-            /*private void Visit(TaskComponent task, HashSet<int> visitedTasks)
-            {
-                if (visitedTasks.Contains(task.GetId()))
-                {
-                    // Skip already visited tasks to avoid duplicates
-                    return;
-                }
-
-                visitedTasks.Add(task.GetId());
-                task.Execute();
-
-                if (task is TaskComposite composite)
-                {
-                    foreach (var child in composite.subtasks)
-                    {
-                        if (child != composite)
-                        {
-                            Visit(child, visitedTasks);
-                        }
-                    }
-                }
             }
+        }*/
+        public override void Iterate()
+        {
+            Console.WriteLine(GetId() + ": " + GetName());
 
-            public void Iterate()
+            foreach (var child in subtasks)
             {
-                Console.WriteLine("Iterating through all children:");
-                var visitedTasks = new HashSet<int>();
-                foreach (var child in subtasks)
-                {
-                    // Only iterate through the children, not ourselves (root task)
-                    if (child != this)
-                    {
-                        Visit(child, visitedTasks);
-                    }
-                }
-            }*/
-
+                child.Iterate();
+            }
         }
+
+
+    }
         internal class TaskIdGenerator
         {
             private static int rootTaskCounter = 0;
@@ -486,103 +423,148 @@ namespace SprintTracker2
 
         }
 
-        internal class Program
-        {
-            static void Main(string[] args)
+     public class Program
+     {
+         static void Main(string[] args)
+         {
+            /*// root
+            TaskComposite root = new TaskComposite("Root");
+            //root.SetId();
+
+            // child 
+            TaskComposite child = new TaskComposite("Child");
+            root.AddChild(child);
+            //child.SetId();
+            TaskComposite child2 = new TaskComposite("Child2");
+            root.AddChild(child2);
+
+            // grandchild
+            TaskComposite grandchild = new TaskComposite("Grand Child");
+            child.AddChild(grandchild);
+            //grandchild.SetId();
+            TaskComposite grandchild2 = new TaskComposite("Grand Child2");
+            child.AddChild(grandchild2);
+
+            TaskComposite grandchild3 = new TaskComposite("Grand Child3");
+            child2.AddChild(grandchild3);
+
+
+            // more leaf 
+            TaskComposite leaf = new TaskComposite("Leaf");
+            grandchild.AddChild(leaf);
+            //leaf.SetId();
+
+            TaskComposite leaf2 = new TaskComposite("Leaf2");
+            grandchild3.AddChild(leaf2);
+            // Print out IDs
+            Console.WriteLine($"Root ID: {root.GetId()}");
+            Console.WriteLine($"Child ID: {child.GetId()}");
+            Console.WriteLine($"Child ID: {child2.GetId()}");
+            Console.WriteLine($"Grand Child ID: {grandchild.GetId()}");
+            Console.WriteLine($"Grand Child ID: {grandchild2.GetId()}");
+            Console.WriteLine($"Grand Child ID: {grandchild3.GetId()}");
+            Console.WriteLine($"Leaf Task ID: {leaf.GetId()}");
+            Console.WriteLine($"Leaf Task ID: {leaf2.GetId()}");
+
+            Console.WriteLine("Check parent");
+            TaskComponent? parentTask = root.GetParent();
+            if (parentTask != null)
             {
-                // root
-                TaskComposite root = new TaskComposite("Root");
-                //root.SetId();
+                // Handle the case where the task has a parent
+                Console.WriteLine(parentTask.GetId());
+            }
+            else
+            {
+                // Handle the case where the task is a root-level task (no parent)
+                Console.WriteLine("Root task has no parent.");
+            }
+            //Console.WriteLine(root.GetParent().GetId()); // null error
+            Console.WriteLine(child.GetParent().GetId());
+            Console.WriteLine(child2.GetParent().GetId());
+            Console.WriteLine(grandchild.GetParent().GetId());
+            Console.WriteLine(grandchild3.GetParent().GetId());
+            Console.WriteLine(leaf.GetParent().GetId());
+            Console.WriteLine(leaf2.GetParent().GetId());
 
-                // child 
-                TaskComposite child = new TaskComposite("Child");
-                root.AddChild(child);
-                //child.SetId();
-                TaskComposite child2 = new TaskComposite("Child2");
-                root.AddChild(child2);
+            Console.WriteLine("root");
+            root.Iterate();
 
-                // grandchild
-                TaskComposite grandchild = new TaskComposite("Grand Child");
-                child.AddChild(grandchild);
-                //grandchild.SetId();
-                TaskComposite grandchild2 = new TaskComposite("Grand Child2");
-                child.AddChild(grandchild2);
+            Console.WriteLine("\nchild2");
+            child2.Iterate();
 
-                TaskComposite grandchild3 = new TaskComposite("Grand Child3");
-                child2.AddChild(grandchild3);
+            Day m = new Day(new DateOnly(2023, 12, 4));
+            m.AddTask(root);
+            Console.WriteLine(m.GetId());
+            List<TaskComposite> tasklist = m.GetPrimaryTasks();
+            foreach (TaskComposite t in tasklist)
+            {
+                Console.WriteLine(t.GetId() + t.GetName());
+            }
+
+            Sprint s = new Sprint(new DateOnly(2023, 11, 29));
+            s.PrintDayIdsAndDates();
+
+            Console.WriteLine("\nIssue");
+            Issue i1 = new Issue("Blocker", "cannot progess", Issue.Status.Resolved);
+            Issue i2 = new Issue("Deprecated Dependencies", "desc", Issue.Status.Updated);
+            Issue i3 = new Issue("Blocker 2", "desc", Issue.Status.New);
+
+            child.AddIssue(i1);
+            child.AddIssue(i2);
+            child.AddIssue(i3);
+
+            List<Issue> li = child.GetAllIssues();
+            foreach (Issue i in li)
+            {
+                Console.WriteLine("Task " + child.GetId() + "'s issue " + i.GetName() + ", " + i.GetStatus().ToString() + ", " + i.GetDesc());
+            }*/
+
+            /*var root = new TaskComposite("Root");
+
+            var child1 = new Task("Child Task 1");
+            var child2 = new TaskComposite("Child Composite 1");
+            var child3 = new TaskComposite("Child Composite 2");
+
+            root.AddChild(child1);
+            root.AddChild(child2);
+            root.AddChild(child3);
+
+            var subchild1 = new Task("Subchild Task 1");
+            child2.AddChild(subchild1);
+
+            root.Iterate();*/
+
+            // root 
+            var root = new TaskComposite("Root");
+
+            // child1 - Task 
+            var child1 = new Task("Child Task 1");
+            root.AddChild(child1);
+
+            // child2 - TaskComposite
+            var child2 = new TaskComposite("Child Composite 1");
+            root.AddChild(child2);
+
+            // grandchild 
+            var grandchild1 = new Task("Grandchild 1 of Child Composite 1");
+            child2.AddChild(grandchild1);
+
+            var grandchild2 = new TaskComposite("Composite Grandchild 2 of Child Composite 1");
+            child2.AddChild(grandchild2);
+
+            // grandgrandchild1
+            var grandgrandchild1 = new Task("Grand-Grandchild 1 of Composite Grandchild 2");
+            grandchild2.AddChild(grandgrandchild1);
+
+            // child3 - Task 
+            var child3 = new Task("Child Task 2");
+            root.AddChild(child3);
 
 
-                // more leaf 
-                TaskComposite leaf = new TaskComposite("Leaf");
-                grandchild.AddChild(leaf);
-                //leaf.SetId();
+            // Iterate 
+            root.Iterate();
 
-                TaskComposite leaf2 = new TaskComposite("Leaf2");
-                grandchild3.AddChild(leaf2);
-                // Print out IDs
-                Console.WriteLine($"Root ID: {root.GetId()}");
-                Console.WriteLine($"Child ID: {child.GetId()}");
-                Console.WriteLine($"Child ID: {child2.GetId()}");
-                Console.WriteLine($"Grand Child ID: {grandchild.GetId()}");
-                Console.WriteLine($"Grand Child ID: {grandchild2.GetId()}");
-                Console.WriteLine($"Grand Child ID: {grandchild3.GetId()}");
-                Console.WriteLine($"Leaf Task ID: {leaf.GetId()}");
-                Console.WriteLine($"Leaf Task ID: {leaf2.GetId()}");
-
-                Console.WriteLine("Check parent");
-                TaskComponent? parentTask = root.GetParent();
-                if (parentTask != null)
-                {
-                    // Handle the case where the task has a parent
-                    Console.WriteLine(parentTask.GetId());
-                }
-                else
-                {
-                    // Handle the case where the task is a root-level task (no parent)
-                    Console.WriteLine("Root task has no parent.");
-                }
-                //Console.WriteLine(root.GetParent().GetId()); // null error
-                Console.WriteLine(child.GetParent().GetId());
-                Console.WriteLine(child2.GetParent().GetId());
-                Console.WriteLine(grandchild.GetParent().GetId());
-                Console.WriteLine(grandchild3.GetParent().GetId());
-                Console.WriteLine(leaf.GetParent().GetId());
-                Console.WriteLine(leaf2.GetParent().GetId());
-
-                Console.WriteLine("root");
-                root.Iterate();
-
-                Console.WriteLine("\nchild2");
-                child2.Iterate();
-
-                Day m = new Day(new DateOnly(2023, 12, 4));
-                m.AddTask(root);
-                Console.WriteLine(m.GetId());
-                List<TaskComposite> tasklist = m.GetPrimaryTasks();
-                foreach (TaskComposite t in tasklist)
-                {
-                    Console.WriteLine(t.GetId() + t.GetName());
-                }
-
-                Sprint s = new Sprint(new DateOnly(2023, 11, 29));
-                s.PrintDayIdsAndDates();
-
-                Console.WriteLine("\nIssue");
-                Issue i1 = new Issue("Blocker", "cannot progess", Issue.Status.Resolved);
-                Issue i2 = new Issue("Deprecated Dependencies", "desc", Issue.Status.Updated);
-                Issue i3 = new Issue("Blocker 2", "desc", Issue.Status.New);
-
-                child.AddIssue(i1);
-                child.AddIssue(i2);
-                child.AddIssue(i3);
-
-                List<Issue> li = child.GetAllIssues();
-                foreach (Issue i in li)
-                {
-                    Console.WriteLine("Task " + child.GetId() + "'s issue " + i.GetName() + ", " + i.GetStatus().ToString() + ", " + i.GetDesc());
-                }
-
-                Console.ReadLine();
+            Console.ReadLine();
             }
         }
     
