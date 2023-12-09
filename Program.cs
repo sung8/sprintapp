@@ -118,15 +118,15 @@ namespace SprintTracker2
     // Observer interface
     public interface IIssueObserver
     {
-        void UpdateIssue(Issue issue, string attributeName, string updatedValue);
+        string UpdateIssue(Issue issue, string attributeName, string updatedValue);
     }
 
     // Observable interface
     public interface IIssueObservable
     {
-        void Subscribe(IIssueObserver observer);
-        void SubscribeMultiple(List<IIssueObserver> observers);
-        void Unsubscribe(IIssueObserver observer);
+        string Subscribe(IIssueObserver observer);
+        string SubscribeMultiple(List<IIssueObserver> observers);
+        string Unsubscribe(IIssueObserver observer);
     }
     public class Team
     {
@@ -230,11 +230,14 @@ namespace SprintTracker2
         {
             return this.assignedTeam;
         }
-        public void UpdateIssue(Issue issue, string attributeName, string updatedValue)
+        /*public void UpdateIssue(Issue issue, string attributeName, string updatedValue)
         {
             Console.WriteLine($"{this.GetName()} received update: {issue.GetName()}'s {attributeName} is changed to {updatedValue}");
+        }*/
+        public string UpdateIssue(Issue issue, string attributeName, string updatedValue)
+        {
+            return $"{this.GetName()} received update: {issue.GetName()}'s {attributeName} is changed to {updatedValue}";
         }
-
         // Implement Unsubscribe method from IIssueObserver
         public void Unsubscribe(IIssueObservable observable)
         {
@@ -372,20 +375,27 @@ namespace SprintTracker2
 
 
 
-        public void Subscribe(IIssueObserver observer)
+        /*public void Subscribe(IIssueObserver observer)
         {
             subscribers.Add(observer);
             if (observer is TeamMember teamMember)
             {
                 Console.WriteLine($"{teamMember.GetName()} subscribed to the issue: {GetName()}");
             }
-        }
+        }*/
+        /*public string Subscribe(IIssueObserver observer)
+        {
+            subscribers.Add(observer);
+
+            if (observer is TeamMember teamMember)
+            {
+                return $"{teamMember.GetName()} subscribed to the issue: {GetName()}";
+            }
+
+            return "";
+        }*/
 
         /*public void Unsubscribe(IIssueObserver observer)
-        {
-            subscribers.Remove(observer);
-        }*/
-        public void Unsubscribe(IIssueObserver observer)
         {
             if (subscribers.Contains(observer))
             {
@@ -397,8 +407,24 @@ namespace SprintTracker2
                     Console.WriteLine($"{unsubscribedMember.name} was unsubscribed from {parentTask.GetAssignedMember().GetName()}'s issue report {GetName()}");
                 }
             }
-        }
+        }*/
+        public string Unsubscribe(IIssueObserver observer)
+        {
+            if (subscribers.Contains(observer))
+            {
 
+                subscribers.Remove(observer);
+
+                TeamMember unsubscribedMember = observer as TeamMember;
+
+                if (unsubscribedMember != null)
+                {
+                    return $"{unsubscribedMember.name} was unsubscribed from {parentTask.GetAssignedMember().GetName()}'s issue report {GetName()}";
+                }
+            }
+
+            return "";
+        }
 
         private void NotifyObservers(string attributeName, string updatedValue)
         {
@@ -408,13 +434,37 @@ namespace SprintTracker2
             }
         }
 
-        public void SubscribeMultiple(List<IIssueObserver> observers)
+        /*public void SubscribeMultiple(List<IIssueObserver> observers)
         {
             foreach (var observer in observers)
             {
                 Subscribe(observer);
             }
+        }*/
+        public string SubscribeMultiple(List<IIssueObserver> observers)
+        {
+            var results = "";
+
+            foreach (var observer in observers)
+            {
+                results += Subscribe(observer);
+            }
+
+            return results;
         }
+
+        public string Subscribe(IIssueObserver observer)
+        {
+            subscribers.Add(observer);
+
+            if (observer is TeamMember teamMember)
+            {
+                return $"{teamMember.GetName()} subscribed to the issue: {GetName()}\n";
+            }
+
+            return "";
+        }
+
 
         /*public void AlertAndUnsubscribeAll()
         {
@@ -821,38 +871,6 @@ namespace SprintTracker2
             team.AddTeamMember(mary);
             team.AddTeamMember(jane);
 
-
-            ////// ISSUE NOTIFICATIONS
-            /*// Create a task assigned to Joe
-            Task task = new Task(joe, "Coding Task", new DateOnly(2023, 12, 8));
-            Console.WriteLine("Task " + task.GetId() + " " + task.GetName()); 
-
-            // Joe creates an issue and alerts Tom and Jane
-            Issue issue = new Issue("Bug", "Application crash", Issue.Status.New, task);
-
-            List<IIssueObserver> sublist = new List<IIssueObserver> { tom, jane };
-
-            *//*issue.Subscribe(tom);
-            issue.Subscribe(jane);*//*
-            issue.SubscribeMultiple(sublist);
-
-            // Joe updates the issue's name
-            issue.SetName("Critical Bug");
-
-            // Joe updates the issue's description
-            issue.SetDesc("wow problemo");
-
-            // Joe updates the status to Updated
-            issue.SetStatus(Issue.Status.Updated);
-
-            // Joe updates the status to Resolved
-            issue.SetStatus(Issue.Status.Resolved);*/
-
-            // Unsubscribe all subscribers
-            //issue.Unsubscribe(tom);
-            //issue.Unsubscribe(jane);
-            //issue.AlertAndUnsubscribeAll(); // same as doing "issue.SetStatus(Issue.Status.Resolved);"
-
             ////// DECORATORS
             /*// Create a team member
             TeamMember joey = new TeamMember(1, "Joey");
@@ -971,6 +989,36 @@ namespace SprintTracker2
             {
                 Console.WriteLine(member);
             }
+
+
+            ////// ISSUE NOTIFICATIONS STRING RETURNS
+            // Create task 
+            Task t2 = new Task(tom, "Fix bug", new DateOnly(2023,12,9));
+
+            // Create issue
+            Issue issue = new Issue("Bug", "Crashes app", Issue.Status.New, t2);
+
+            // Subscribe single observer
+            string subscribeResult = issue.Subscribe(tom);
+            Console.WriteLine(subscribeResult);
+
+            // Subscribe multiple observers
+            List<IIssueObserver> observers = new List<IIssueObserver> { tom, mary };
+            string subscribeMultipleResult = issue.SubscribeMultiple(observers);
+            Console.WriteLine(subscribeMultipleResult);
+
+            // Update issue to notify observers 
+            issue.SetName("Critical bug");
+            issue.SetStatus(Issue.Status.FixInProgress);
+            issue.SetDesc("zzzzzzzzzzzzzzzz");
+
+
+            // Unsubscribe observer
+            string unsubscribeResult = issue.Unsubscribe(tom);
+            Console.WriteLine(unsubscribeResult);
+
+            // Update issue again
+            issue.SetStatus(Issue.Status.Resolved);
 
             Console.ReadLine();
         }
