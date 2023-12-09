@@ -3,6 +3,93 @@ using System.Runtime.CompilerServices;
 
 namespace SprintTracker2
 {
+    public class TaskBuilder
+    {
+        private TeamMember assignedMember;
+        private string name;
+        private DateOnly dueDate;
+        private TaskComponent task;
+
+        public TaskBuilder WithAssignedMember(TeamMember member)
+        {
+            this.assignedMember = member;
+            return this;
+        }
+
+        public TaskBuilder WithName(string name)
+        {
+            this.name = name;
+            return this;
+        }
+
+        public TaskBuilder WithDueDate(DateOnly date)
+        {
+            this.dueDate = date;
+            return this;
+        }
+
+        public Task BuildTask()
+        {
+            return new Task(assignedMember, name, dueDate);
+        }
+
+        public TaskComposite BuildCompositeTask()
+        {
+            return new TaskComposite(assignedMember, name, dueDate);
+        }
+
+ /*       public TaskBuilder AddSubtask(TaskComponent subtask)
+        {
+            if (task is Task)
+            {
+                // Attempt conversion 
+                task = ConvertToComposite();
+            }
+
+            // Check for null
+            if (task != null)
+            {
+                ((TaskComposite)task).AddChild(subtask);
+            }
+
+            return this;
+        }
+
+        private TaskComposite ConvertToComposite()
+        {
+            // If task is Task, convert it to a TaskComposite,
+            // copy over properties, return it
+            if (task is Task t)
+            {
+                var copy = new TaskComposite(t.GetAssignedMember(),
+                                             t.GetName(),
+                                             t.GetDueDate());
+
+                return copy;
+            }
+
+            // Otherwise return null
+            return conversionSucceeded ? composite : null;
+        }*/
+        public TaskDecorator BuildUrgentTask(TaskComponent task)
+        {
+            return new UrgentTaskDecorator(task);
+        }
+
+        public MeetingTaskDecorator BuildSmallMeetingTask(TaskComponent task,
+                                                           TimeOnly time,
+                                                           List<TeamMember> attendees)
+        {
+            return new SmallMeetingTaskDecorator(task, time, attendees);
+        }
+
+        public MeetingTaskDecorator BuildMassMeetingTask(TaskComponent task,
+                                                         TimeOnly time,
+                                                         List<Team> teams)
+        {
+            return new MassMeetingTaskDecorator(task, time, teams);
+        }
+    }
     public class Sprint
     {
         private DateOnly startDate;
@@ -581,7 +668,7 @@ namespace SprintTracker2
     }
 
     // Leaf
-    class Task : TaskComponent
+    public class Task : TaskComponent
     {
 
         public Task(TeamMember assignedPerson, string taskName, DateOnly dueDate)
@@ -705,6 +792,7 @@ namespace SprintTracker2
     {
         static void Main(string[] args)
         {
+            /////// RECURSIVE ITERATION TEST
             /*// root 
             var root = new TaskComposite("Root");
 
@@ -735,6 +823,9 @@ namespace SprintTracker2
             // Iterate 
             root.Iterate();*/
 
+
+            /////// ISSUE NOTIFICATION TESTS
+            /*
             // Create team members
             TeamMember joe = new TeamMember(1, "Joe");
             TeamMember tom = new TeamMember(2, "Tom");
@@ -750,15 +841,15 @@ namespace SprintTracker2
 
             // Create a task assigned to Joe
             Task task = new Task(joe, "Coding Task", new DateOnly(2023, 12, 8));
-            Console.WriteLine("Task " + task.GetId() + " " + task.GetName()); 
+            Console.WriteLine("Task " + task.GetId() + " " + task.GetName());
 
             // Joe creates an issue and alerts Tom and Jane
             Issue issue = new Issue("Bug", "Application crash", Issue.Status.New, task);
 
             List<IIssueObserver> sublist = new List<IIssueObserver> { tom, jane };
 
-            /*issue.Subscribe(tom);
-            issue.Subscribe(jane);*/
+            issue.Subscribe(tom);
+            issue.Subscribe(jane);
             issue.SubscribeMultiple(sublist);
 
             // Joe updates the issue's name
@@ -777,9 +868,10 @@ namespace SprintTracker2
             //issue.Unsubscribe(tom);
             //issue.Unsubscribe(jane);
             //issue.AlertAndUnsubscribeAll(); // same as doing "issue.SetStatus(Issue.Status.Resolved);"
+*/
 
-
-            // Create a team member
+            /////// TASK DECORATORS TEST
+            /*// Create a team member
             TeamMember joey = new TeamMember(1, "Joey");
 
             // Create a basic task
@@ -828,11 +920,62 @@ namespace SprintTracker2
             urgentSmallMeetingTask.Iterate();
             Console.WriteLine("Host of the meeting: " + coreTask.GetHost().GetName());
             Console.WriteLine("Meeting Time: " + coreTask.GetMeetingTime());
-            Console.WriteLine("Attendees: " + string.Join(", ", coreTask.GetAttendees().Select(a => a.GetName())));
+            Console.WriteLine("Attendees: " + string.Join(", ", coreTask.GetAttendees().Select(a => a.GetName())));*/
 
+
+            /////// TASK BUILDERS TEST
+            // Create some test data
+            TeamMember joe = new TeamMember(1, "Joe");
+            DateOnly dueDate = new DateOnly(2023, 12, 10);
+            TimeOnly meetingTime = new TimeOnly(10, 30);
+            List<TeamMember> members = GetTestMembers();
+
+            // Create builder
+            TaskBuilder builder = new TaskBuilder();
+
+            // Build plain task
+            Task task = builder
+                .WithAssignedMember(joe)
+                .WithName("Do work")
+                .WithDueDate(dueDate)
+                .BuildTask();
+
+            // Build and decorate as urgent  
+            TaskDecorator urgentTask = builder
+                .BuildUrgentTask(task);
+
+            // Build and decorate with meeting
+            MeetingTaskDecorator meetingTask = builder
+                .BuildSmallMeetingTask(task, meetingTime, members);
+
+            // Print out tasks
+            task.Iterate();
+            urgentTask.Iterate();
+            meetingTask.Iterate();
+
+
+            /*Task subtask1 = new TaskBuilder().BuildTask();
+
+            Task subtask2 = new TaskBuilder().BuildTask();
+
+            // Create main task
+            Task mainTask = new TaskBuilder()
+                            .AddSubtask(subtask1)
+                            .AddSubtask(subtask2)
+                            .BuildTask(); // is converted to TaskComposite
+
+            mainTask.Iterate();*/
 
             Console.ReadLine();
-        }
 
+            static List<TeamMember> GetTestMembers()
+            {
+                return new List<TeamMember>() {
+                    new TeamMember(1, "Tom"),
+                    new TeamMember(2, "Mary")
+                };
+
+            }
+        }
     }
 }
