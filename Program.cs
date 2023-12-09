@@ -105,16 +105,7 @@ namespace SprintTracker2
             return this.dueDate;
         }
     }
-    /*public interface IObserver<T>
-    {
-        void Update(T data);
-    }
 
-    public interface IObservable<T>
-    {
-        void Subscribe(IObserver<T> observer);
-        void Unsubscribe(IObserver<T> observer);
-    }*/
     // Observer interface
     public interface IIssueObserver
     {
@@ -165,8 +156,6 @@ namespace SprintTracker2
         {
             return this.members;
         }
-
-
         /*public void DisplayTeamMembers()
         {
             Console.WriteLine($"Team: {this.name}, TeamId: {this.id}");
@@ -334,22 +323,6 @@ namespace SprintTracker2
             this.parentTask = t;
         }
 
-        public void AssignToTask(TaskComponent task)
-        {
-            /*this.parentTask = task;
-            task.Subscribe(new TeamMember("Issue Raiser")); */
-        }
-
-        /*protected void ResolveIssue()
-        {
-            if (parentTask != null)
-            {
-                // Use a TeamMember object here if needed
-                //parentTask.Unsubscribe(subscriber);
-            }
-
-        }*/
-
         public void SetStatus(Status newStatus)
         {
             if (newStatus == Status.Resolved)
@@ -372,42 +345,6 @@ namespace SprintTracker2
 
             this.currStatus = newStatus;
         }
-
-
-
-        /*public void Subscribe(IIssueObserver observer)
-        {
-            subscribers.Add(observer);
-            if (observer is TeamMember teamMember)
-            {
-                Console.WriteLine($"{teamMember.GetName()} subscribed to the issue: {GetName()}");
-            }
-        }*/
-        /*public string Subscribe(IIssueObserver observer)
-        {
-            subscribers.Add(observer);
-
-            if (observer is TeamMember teamMember)
-            {
-                return $"{teamMember.GetName()} subscribed to the issue: {GetName()}";
-            }
-
-            return "";
-        }*/
-
-        /*public void Unsubscribe(IIssueObserver observer)
-        {
-            if (subscribers.Contains(observer))
-            {
-                subscribers.Remove(observer);
-                TeamMember unsubscribedMember = observer as TeamMember;
-
-                if (unsubscribedMember != null)
-                {
-                    Console.WriteLine($"{unsubscribedMember.name} was unsubscribed from {parentTask.GetAssignedMember().GetName()}'s issue report {GetName()}");
-                }
-            }
-        }*/
         public string Unsubscribe(IIssueObserver observer)
         {
             if (subscribers.Contains(observer))
@@ -700,14 +637,6 @@ namespace SprintTracker2
             this.SetDueDate(dueDate);
         }
 
-        /*public override void Execute()
-        {
-            Console.WriteLine("Executing task " + this.GetId() + ": " + this.GetName());
-        }*/
-        /*public override void Iterate()
-        {
-            Console.WriteLine($"{GetId()}: {GetName()} (Task)");
-        }*/
         public override string Iterate()
         {
             return $"{GetId()}: {GetName()} (Task)";
@@ -751,24 +680,6 @@ namespace SprintTracker2
         {
             subtasks.Remove(task);
         }
-
-        /*public override void Execute()
-        {
-            Console.WriteLine("Executing task " + this.GetId() + ": " + this.GetName());
-            foreach (var task in subtasks)
-            {
-                task.Execute();
-            }
-        }*/
-        /*public override void Iterate()
-        {
-            Console.WriteLine(GetId() + ": " + GetName());
-
-            foreach (var child in subtasks)
-            {
-                child.Iterate();
-            }
-        }*/
         public override string Iterate()
         {
             var result = $"{GetId()} {GetName()} \n";
