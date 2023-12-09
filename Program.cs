@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
 namespace SprintTracker2
@@ -41,7 +42,7 @@ namespace SprintTracker2
     }
     class Day
     {
-        private string id; 
+        private string id;
         // either 
         // 1. date in YYYYMMDD format
         // 2. something 1 - 14
@@ -143,6 +144,10 @@ namespace SprintTracker2
         {
             Console.WriteLine($"Team member '{name}' received update: {data}");
         }
+        public Team GetAssignedTeam()
+        {
+            return this.assignedTeam;
+        }
     }
 
     class Issue
@@ -160,6 +165,7 @@ namespace SprintTracker2
         //private DateOnly dateRaised;
         private Status currStatus;
         private TaskComponent parentTask;
+        private TeamMember issueRaiser;
 
         public Issue(string title, string desc, Status status)
         {
@@ -197,7 +203,11 @@ namespace SprintTracker2
         {
             if (newStatus is Status.Resolved)
             {
-                this.ResolveIssue();
+                // Notify observers  
+                this.NotifyStatusChanged();
+
+                // Unsubscribe observers
+                this.UnsubscribeObservers();
             }
             this.currStatus = newStatus;
             //ex:
@@ -208,13 +218,37 @@ namespace SprintTracker2
             this.parentTask = t;
         }
 
-        public void AssignToTask(TaskComponent task)
+        public void AssignToTask(TaskComponent task, TeamMember raiser)
         {
-            /*this.parentTask = task;
-            task.Subscribe(new TeamMember("Issue Raiser")); */
+            this.parentTask = task;
+            this.SetIssueRaiser(raiser);
         }
 
-        protected void ResolveIssue()
+        private void NotifyStatusChanged()
+        {
+            string notification = $"Issue {name} status changed to {currStatus} by {issueRaiser.name}";
+
+            foreach (var teamMemberObservers in parentTask.observers)
+            {
+                foreach (var observer in teamMemberObservers.Value)
+                {
+                    observer.Update(notification);
+                }
+            }
+        }
+
+        private void UnsubscribeObservers()
+        {
+            foreach (var teamMemberObservers in parentTask.observers)
+            {
+                foreach (var observer in teamMemberObservers.Value)
+                {
+                    parentTask.Unsubscribe(observer);
+                }
+            }
+        }
+
+        /*protected void ResolveIssue()
         {
             if (parentTask != null)
             {
@@ -222,108 +256,167 @@ namespace SprintTracker2
                 //parentTask.Unsubscribe(subscriber);
             }
 
+        }*/
+
+        public TeamMember GetIssueRaiser()
+        {
+            return issueRaiser;
+        }
+
+        public void SetIssueRaiser(TeamMember raiser)
+        {
+            issueRaiser = raiser;
         }
     }
-        class TaskDecorator : TaskComponent
+    class TaskDecorator : TaskComponent
+    {
+        TaskComponent task;
+
+        public TaskDecorator(TaskComponent decoratedTask)
         {
-            TaskComponent task;
+            this.task = decoratedTask;
+        }
+        public override void Iterate()
+        {
 
-            public TaskDecorator(TaskComponent decoratedTask)
-            {
-                this.task = decoratedTask;
-            }
-            public override void Iterate()
-            {
+        }
+    }
 
-            }
+    // Component
+    abstract class TaskComponent : IObservable<string>
+    {
+        private int id;
+        private string name;
+        private DateOnly dueDate;
+        private TaskComponent? parent;
+        private TeamMember assignedMember;
+        public List<Issue> issues { get; set; } = new List<Issue>();
+        public Dictionary<TeamMember, List<IObserver<string>>> observers = new Dictionary<TeamMember, List<IObserver<string>>>();
+
+        public TaskComponent()
+        {
         }
 
-        // Component
-        abstract class TaskComponent : IObservable<string>
+        public TaskComponent(TeamMember assignedPerson, string taskName, DateOnly dueDate)
         {
-            private int id;
-            private string name;
-            private TaskComponent? parent;
-            private TeamMember assignedMember; 
-            public List<Issue> issues { get; set; } = new List<Issue>();
-            private List<IObserver<string>> observers = new List<IObserver<string>>();
-
-            public TaskComponent()
+            this.assignedMember = assignedPerson;
+            this.name = taskName;
+            this.dueDate = dueDate;
+        }
+        public void SetDueDate(DateOnly date)
+        {
+            this.dueDate = date;
+        }
+        public DateOnly GetDueDate()
+        {
+            return this.dueDate;
+        }
+        public void SetAssignedMember(TeamMember assignedPerson)
+        {
+            this.assignedMember = assignedPerson;
+        }
+        public TeamMember GetAssignedMember()
+        {
+            return this.assignedMember;
+        }
+        public int GetId()
+        {
+            return this.id;
+        }
+        public void SetId()
+        {
+            this.id = TaskIdGenerator.GenerateId(this);
+        }
+        public string GetName()
+        {
+            return this.name;
+        }
+        public void SetName(string newName)
+        {
+            this.name = newName;
+        }
+        public TaskComponent? GetParent()
+        {
+            return this.parent;
+        }
+        public void SetParent(TaskComponent parent)
+        {
+            this.parent = parent;
+        }
+        public void AddIssue(Issue newIssueReport)
+        {
+            this.issues.Add(newIssueReport);
+            newIssueReport.SetParentTask(this);
+        }
+        /*public void AddIssue(Issue issue, TeamMember raiser)
+        {
+            if (raiser != assignedMember)
             {
+                throw new Exception("Only assigned member can raise issues");
             }
 
-            public int GetId()
+            issues.Add(issue);
+            issue.SetParentTask(this);
+        }*/
+        /*public List<Issue> GetAllIssues()
+        {
+            // Check if the task has issues
+            if (this.issues == null || this.issues.Count == 0)
             {
-                return this.id;
+                // No issues, return an empty list or null based on your preference
+                return new List<Issue>();  // or return null;
             }
-            public void SetId()
+
+            // Return the list of issues
+            return this.issues;
+        }*/
+
+        public void Subscribe(IObserver<string> observer)
+        {
+            if (!observers.ContainsKey(((TeamMember)observer).GetAssignedTeam()))
             {
-                this.id = TaskIdGenerator.GenerateId(this);
+                observers[((TeamMember)observer).GetAssignedTeam()] = new List<IObserver<string>>();
             }
-            public string GetName()
+
+            observers[((TeamMember)observer).GetAssignedTeam()].Add(observer);
+        }
+        public void Unsubscribe(IObserver<string> observer)
+        {
+            foreach (var teamMemberObservers in observers)
             {
-                return this.name;
-            }
-            public void SetName(string newName)
-            {
-                this.name = newName;
-            }
-            public TaskComponent? GetParent()
-            {
-                return this.parent;
-            }
-            public void SetParent(TaskComponent parent)
-            {
-                this.parent = parent;
-            }
-            public void AddIssue(Issue newIssueReport)
-            {
-                this.issues.Add(newIssueReport);
-                newIssueReport.SetParentTask(this);
-            }
-            public List<Issue> GetAllIssues()
-            {
-                // Check if the task has issues
-                if (this.issues == null || this.issues.Count == 0)
+                if (teamMemberObservers.Value.Contains(observer))
                 {
-                    // No issues, return an empty list or null based on your preference
-                    return new List<Issue>();  // or return null;
+                    teamMemberObservers.Value.Remove(observer);
+                    break;
                 }
-
-                // Return the list of issues
-                return this.issues;
             }
-
-            public void Subscribe(IObserver<string> observer)
+        }
+        private void NotifyObservers(string data)
+        {
+            foreach (var observerKvp in observers)
             {
-                observers.Add(observer);
-            }
-
-            public void Unsubscribe(IObserver<string> observer)
-            {
-                observers.Remove(observer);
-            }
-            private void NotifyObservers(string data)
-            {
-                foreach (var observer in observers)
+                foreach (var observer in observerKvp.Value)
                 {
                     observer.Update(data);
                 }
             }
-
-            //public abstract void Execute();
-            public abstract void Iterate();
         }
 
-        // Leaf
-        class Task : TaskComponent
-        {
+        //public abstract void Execute();
+        public abstract void Iterate();
+    }
 
-            public Task(string name)
-            {
-                this.SetId();
-                this.SetName(name);
-            }
+    // Leaf
+    class Task : TaskComponent
+    {
+
+        public Task(TeamMember assignedPerson, string taskName, DateOnly dueDate)
+        {
+            this.SetId();
+            this.SetName(taskName);
+            this.SetAssignedMember(assignedPerson);
+            this.SetDueDate(dueDate);
+        }
 
         /*public override void Execute()
         {
@@ -335,41 +428,48 @@ namespace SprintTracker2
         }
     }
 
-        // Composite
-        class TaskComposite : TaskComponent
+    // Composite
+    class TaskComposite : TaskComponent
+    {
+        protected List<TaskComponent> subtasks;
+
+        public TaskComposite(TeamMember assignedPerson, string taskName, DateOnly dueDate)
         {
-            protected List<TaskComponent> subtasks = new List<TaskComponent>();
-
-            public TaskComposite(string name)
-            {
-                this.SetId();
-                this.SetName(name);
-            }
-
-            public void AddChild(TaskComponent task)
-            {
-                //subtasks.Add(task);
-                task.SetParent(this);
-                subtasks.Add(task);
-                task.SetId();
-                /*child.Parent = this;
-                Children.Add(child);*/
-
-            }
-
-            public void RemoveChild(TaskComponent task)
-            {
-                subtasks.Remove(task);
-            }
-
-        /*public override void Execute()
+            this.SetId();
+            this.SetName(taskName);
+            this.SetAssignedMember(assignedPerson);
+            this.SetDueDate(dueDate);
+            this.subtasks = new List<TaskComponent>();
+        }
+        public TaskComposite(TeamMember assignedPerson, string taskName, DateOnly dueDate, List<TaskComponent> children)
         {
-            Console.WriteLine("Executing task " + this.GetId() + ": " + this.GetName());
-            foreach (var task in subtasks)
-            {
-                task.Execute();
-            }
-        }*/
+            this.SetId();
+            this.SetName(taskName);
+            this.SetAssignedMember(assignedPerson);
+            this.SetDueDate(dueDate);
+            this.subtasks = children;
+        }
+
+        public void AddChild(TaskComponent task)
+        {
+            //subtasks.Add(task);
+            task.SetParent(this);
+            subtasks.Add(task);
+            task.SetId();
+            /*child.Parent = this;
+            Children.Add(child);*/
+
+        }
+
+        public void RemoveChild(TaskComponent task)
+        {
+            subtasks.Remove(task);
+        }
+
+        public void AddChildren(List<TaskComponent> children)
+        {
+            subtasks.AddRange(children);
+        }
         public override void Iterate()
         {
             Console.WriteLine(GetId() + ": " + GetName());
@@ -382,159 +482,53 @@ namespace SprintTracker2
 
 
     }
-        internal class TaskIdGenerator
+    internal class TaskIdGenerator
+    {
+        private static int rootTaskCounter = 0;
+        private static Dictionary<int, int> childTaskCounters = new Dictionary<int, int>();
+
+        public static int GenerateRootId()
         {
-            private static int rootTaskCounter = 0;
-            private static Dictionary<int, int> childTaskCounters = new Dictionary<int, int>();
-
-            public static int GenerateRootId()
-            {
-                return ++rootTaskCounter;
-                //return rootTaskCounter++;
-            }
-
-            public static int GenerateId(TaskComponent task)
-            {
-                if (task.GetParent() == null)
-                {
-                    // This is a root node
-                    return GenerateRootId();
-
-                }
-                else
-                {
-                    // This is a child node
-                    return GenerateChildId(task.GetParent());
-                }
-            }
-            public static int GenerateChildId(TaskComponent parent)
-            {
-
-                if (!childTaskCounters.ContainsKey(parent.GetId()))
-                {
-                    childTaskCounters[parent.GetId()] = 1;
-                }
-
-                int childId = parent.GetId() * 100 + childTaskCounters[parent.GetId()]++;
-
-                return childId;
-
-            }
-
+            return ++rootTaskCounter;
+            //return rootTaskCounter++;
         }
 
-     public class Program
-     {
-         static void Main(string[] args)
-         {
-            /*// root
-            TaskComposite root = new TaskComposite("Root");
-            //root.SetId();
-
-            // child 
-            TaskComposite child = new TaskComposite("Child");
-            root.AddChild(child);
-            //child.SetId();
-            TaskComposite child2 = new TaskComposite("Child2");
-            root.AddChild(child2);
-
-            // grandchild
-            TaskComposite grandchild = new TaskComposite("Grand Child");
-            child.AddChild(grandchild);
-            //grandchild.SetId();
-            TaskComposite grandchild2 = new TaskComposite("Grand Child2");
-            child.AddChild(grandchild2);
-
-            TaskComposite grandchild3 = new TaskComposite("Grand Child3");
-            child2.AddChild(grandchild3);
-
-
-            // more leaf 
-            TaskComposite leaf = new TaskComposite("Leaf");
-            grandchild.AddChild(leaf);
-            //leaf.SetId();
-
-            TaskComposite leaf2 = new TaskComposite("Leaf2");
-            grandchild3.AddChild(leaf2);
-            // Print out IDs
-            Console.WriteLine($"Root ID: {root.GetId()}");
-            Console.WriteLine($"Child ID: {child.GetId()}");
-            Console.WriteLine($"Child ID: {child2.GetId()}");
-            Console.WriteLine($"Grand Child ID: {grandchild.GetId()}");
-            Console.WriteLine($"Grand Child ID: {grandchild2.GetId()}");
-            Console.WriteLine($"Grand Child ID: {grandchild3.GetId()}");
-            Console.WriteLine($"Leaf Task ID: {leaf.GetId()}");
-            Console.WriteLine($"Leaf Task ID: {leaf2.GetId()}");
-
-            Console.WriteLine("Check parent");
-            TaskComponent? parentTask = root.GetParent();
-            if (parentTask != null)
+        public static int GenerateId(TaskComponent task)
+        {
+            if (task.GetParent() == null)
             {
-                // Handle the case where the task has a parent
-                Console.WriteLine(parentTask.GetId());
+                // This is a root node
+                return GenerateRootId();
+
             }
             else
             {
-                // Handle the case where the task is a root-level task (no parent)
-                Console.WriteLine("Root task has no parent.");
+                // This is a child node
+                return GenerateChildId(task.GetParent());
             }
-            //Console.WriteLine(root.GetParent().GetId()); // null error
-            Console.WriteLine(child.GetParent().GetId());
-            Console.WriteLine(child2.GetParent().GetId());
-            Console.WriteLine(grandchild.GetParent().GetId());
-            Console.WriteLine(grandchild3.GetParent().GetId());
-            Console.WriteLine(leaf.GetParent().GetId());
-            Console.WriteLine(leaf2.GetParent().GetId());
+        }
+        public static int GenerateChildId(TaskComponent parent)
+        {
 
-            Console.WriteLine("root");
-            root.Iterate();
-
-            Console.WriteLine("\nchild2");
-            child2.Iterate();
-
-            Day m = new Day(new DateOnly(2023, 12, 4));
-            m.AddTask(root);
-            Console.WriteLine(m.GetId());
-            List<TaskComposite> tasklist = m.GetPrimaryTasks();
-            foreach (TaskComposite t in tasklist)
+            if (!childTaskCounters.ContainsKey(parent.GetId()))
             {
-                Console.WriteLine(t.GetId() + t.GetName());
+                childTaskCounters[parent.GetId()] = 1;
             }
 
-            Sprint s = new Sprint(new DateOnly(2023, 11, 29));
-            s.PrintDayIdsAndDates();
+            int childId = parent.GetId() * 100 + childTaskCounters[parent.GetId()]++;
 
-            Console.WriteLine("\nIssue");
-            Issue i1 = new Issue("Blocker", "cannot progess", Issue.Status.Resolved);
-            Issue i2 = new Issue("Deprecated Dependencies", "desc", Issue.Status.Updated);
-            Issue i3 = new Issue("Blocker 2", "desc", Issue.Status.New);
+            return childId;
 
-            child.AddIssue(i1);
-            child.AddIssue(i2);
-            child.AddIssue(i3);
+        }
 
-            List<Issue> li = child.GetAllIssues();
-            foreach (Issue i in li)
-            {
-                Console.WriteLine("Task " + child.GetId() + "'s issue " + i.GetName() + ", " + i.GetStatus().ToString() + ", " + i.GetDesc());
-            }*/
+    }
 
-            /*var root = new TaskComposite("Root");
+    public class Program
+    {
+        static void Main(string[] args)
+        {
 
-            var child1 = new Task("Child Task 1");
-            var child2 = new TaskComposite("Child Composite 1");
-            var child3 = new TaskComposite("Child Composite 2");
-
-            root.AddChild(child1);
-            root.AddChild(child2);
-            root.AddChild(child3);
-
-            var subchild1 = new Task("Subchild Task 1");
-            child2.AddChild(subchild1);
-
-            root.Iterate();*/
-
-            // root 
+            /*// root 
             var root = new TaskComposite("Root");
 
             // child1 - Task 
@@ -562,10 +556,45 @@ namespace SprintTracker2
 
 
             // Iterate 
-            root.Iterate();
+            root.Iterate();*/
+
+            // Create team
+var team = new Team(1, "Team 1"); 
+
+// Add members
+var joe = new TeamMember(1, "Joe", team);
+var tom = new TeamMember(2, "Tom", team);
+var mary = new TeamMember(3, "Mary", team);  
+var jane = new TeamMember(4, "Jane", team);
+
+// Add members to team  
+team.AddTeamMember(joe);
+team.AddTeamMember(tom);   
+team.AddTeamMember(mary);
+team.AddTeamMember(jane);
+
+// Create task assigned to Joe 
+var task = new Task(joe, "Task 1", DateOnly.FromDateTime(DateTime.Now));
+
+// Joe creates issue
+var issue = new Issue("Issue 1", "", Issue.Status.New); 
+issue.AssignToTask(task, joe); // Joe is raiser
+
+// Joe subscribes Tom and Jane
+task.Subscribe(tom); 
+task.Subscribe(jane);
+
+// Joe updates issue name
+issue.SetName("Updated Issue Name"); 
+
+// Joe updates issue status  
+issue.SetStatus(Issue.Status.Updated);
+
+// Joe resolves issue
+issue.SetStatus(Issue.Status.Resolved);
 
             Console.ReadLine();
-            }
         }
-    
+    }
+
 }
