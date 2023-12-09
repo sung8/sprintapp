@@ -25,7 +25,7 @@ namespace SprintTracker2
             }
         }
 
-        public void PrintDayIdsAndDates()
+        /*public void PrintDayIdsAndDates()
         {
             foreach (var dayEntry in Days)
             {
@@ -36,8 +36,41 @@ namespace SprintTracker2
 
                 Console.WriteLine($"Day ID: {dayId}, Due Date: {dueDateString}");
             }
+        }*/
+        public string GetStringDayIdsAndDates()
+        {
+            var results = "";
+            foreach (var dayEntry in Days)
+            {
+                int dayId = dayEntry.Key;
+                Day day = dayEntry.Value;
+
+                string dayIdString = day.GetId();
+                string dueDateString = day.GetDate().ToString("yyyyMMdd");
+
+                results += $"Day ID: {dayId}, Due Date: {dueDateString} \n";
+            }
+
+            return results;
         }
 
+        public List<string> GetStringListDayIdsAndDates()
+        {
+            var results = new List<string>();
+
+            foreach (var dayEntry in Days)
+            {
+                int dayId = dayEntry.Key;
+                Day day = dayEntry.Value;
+
+                string dayIdString = day.GetId();
+                string dueDateString = day.GetDate().ToString("yyyyMMdd");
+
+                results.Add($"Day ID: {dayId}, Due Date: {dueDateString}");
+            }
+
+            return results;
+        }
     }
     public class Day
     {
@@ -134,13 +167,37 @@ namespace SprintTracker2
         }
 
 
-        public void DisplayTeamMembers()
+        /*public void DisplayTeamMembers()
         {
             Console.WriteLine($"Team: {this.name}, TeamId: {this.id}");
             foreach (var teamMember in this.members)
             {
                 Console.WriteLine($"  Team Member: {teamMember.name}, MemberId: {teamMember.id}");
             }
+        }*/
+        public string GetStringTeamMembers()
+        {
+            var results = $"Team: {this.name}, TeamId: {this.id}\n";
+
+            foreach (var teamMember in this.members)
+            {
+                results += $"  Team Member: {teamMember.name}, MemberId: {teamMember.id}\n";
+            }
+
+            return results;
+        }
+        public List<string> GetStringListTeamMembers()
+        {
+            var results = new List<string>();
+
+            results.Add($"Team: {this.name}, TeamId: {this.id}");
+
+            foreach (var teamMember in this.members)
+            {
+                results.Add($"  Team Member: {teamMember.name}, MemberId: {teamMember.id}");
+            }
+
+            return results;
         }
         public bool IsTeamMember(TeamMember member)
         {
@@ -385,9 +442,9 @@ namespace SprintTracker2
         {
             this.task = decoratedTask;
         }
-        public override void Iterate()
+        public override string Iterate()
         {
-            task.Iterate();
+            return task.Iterate();
         }
         public TaskComponent GetCore()
         {
@@ -577,7 +634,8 @@ namespace SprintTracker2
         }
 
         //public abstract void Execute();
-        public abstract void Iterate();
+        //public abstract void Iterate();
+        public abstract string Iterate();
     }
 
     // Leaf
@@ -596,9 +654,13 @@ namespace SprintTracker2
         {
             Console.WriteLine("Executing task " + this.GetId() + ": " + this.GetName());
         }*/
-        public override void Iterate()
+        /*public override void Iterate()
         {
             Console.WriteLine($"{GetId()}: {GetName()} (Task)");
+        }*/
+        public override string Iterate()
+        {
+            return $"{GetId()}: {GetName()} (Task)";
         }
     }
 
@@ -648,7 +710,7 @@ namespace SprintTracker2
                 task.Execute();
             }
         }*/
-        public override void Iterate()
+        /*public override void Iterate()
         {
             Console.WriteLine(GetId() + ": " + GetName());
 
@@ -656,8 +718,18 @@ namespace SprintTracker2
             {
                 child.Iterate();
             }
-        }
+        }*/
+        public override string Iterate()
+        {
+            var result = $"{GetId()} {GetName()} \n";
 
+            foreach (var child in subtasks)
+            {
+                result += $"- {child.Iterate()} \n";
+            }
+
+            return result;
+        }
 
     }
     internal class TaskIdGenerator
@@ -705,6 +777,7 @@ namespace SprintTracker2
     {
         static void Main(string[] args)
         {
+            ////// ITERATION VIA CONSOLE
             /*// root 
             var root = new TaskComposite("Root");
 
@@ -748,7 +821,9 @@ namespace SprintTracker2
             team.AddTeamMember(mary);
             team.AddTeamMember(jane);
 
-            // Create a task assigned to Joe
+
+            ////// ISSUE NOTIFICATIONS
+            /*// Create a task assigned to Joe
             Task task = new Task(joe, "Coding Task", new DateOnly(2023, 12, 8));
             Console.WriteLine("Task " + task.GetId() + " " + task.GetName()); 
 
@@ -757,8 +832,8 @@ namespace SprintTracker2
 
             List<IIssueObserver> sublist = new List<IIssueObserver> { tom, jane };
 
-            /*issue.Subscribe(tom);
-            issue.Subscribe(jane);*/
+            *//*issue.Subscribe(tom);
+            issue.Subscribe(jane);*//*
             issue.SubscribeMultiple(sublist);
 
             // Joe updates the issue's name
@@ -771,15 +846,15 @@ namespace SprintTracker2
             issue.SetStatus(Issue.Status.Updated);
 
             // Joe updates the status to Resolved
-            issue.SetStatus(Issue.Status.Resolved);
+            issue.SetStatus(Issue.Status.Resolved);*/
 
             // Unsubscribe all subscribers
             //issue.Unsubscribe(tom);
             //issue.Unsubscribe(jane);
             //issue.AlertAndUnsubscribeAll(); // same as doing "issue.SetStatus(Issue.Status.Resolved);"
 
-
-            // Create a team member
+            ////// DECORATORS
+            /*// Create a team member
             TeamMember joey = new TeamMember(1, "Joey");
 
             // Create a basic task
@@ -828,8 +903,74 @@ namespace SprintTracker2
             urgentSmallMeetingTask.Iterate();
             Console.WriteLine("Host of the meeting: " + coreTask.GetHost().GetName());
             Console.WriteLine("Meeting Time: " + coreTask.GetMeetingTime());
-            Console.WriteLine("Attendees: " + string.Join(", ", coreTask.GetAttendees().Select(a => a.GetName())));
+            Console.WriteLine("Attendees: " + string.Join(", ", coreTask.GetAttendees().Select(a => a.GetName())));*/
 
+            ////// STRINGIFIED ITERATION
+            DateOnly date = new DateOnly(2023,12,9);
+            // Create root composite
+            TaskComposite root = new TaskComposite(joe, "Root", date);
+
+            // Level 1 children
+            Task childTask1 = new Task(joe, "Child Task 1", date);
+            TaskComposite childComposite1 = new TaskComposite(joe, "Child Composite 1", date);
+
+            // Level 2 children
+            Task grandchildTask1 = new Task(joe, "Grandchild Task 1", date);
+            TaskComposite grandchildComposite1 = new TaskComposite(joe, "Grandchild Composite 1", date);
+
+            // Level 3 children 
+            Task greatGrandchildTask1 = new Task(joe, "Great Grandchild Task 1", date);
+
+            // Level 4 children
+            Task greatGreatGrandchildTask1 = new Task(joe, "Great Great Grandchild Task 1", date);
+
+            // Add child elements  
+            root.AddChild(childTask1);
+            root.AddChild(childComposite1);
+
+            childComposite1.AddChild(grandchildTask1);
+            childComposite1.AddChild(grandchildComposite1);
+
+            grandchildComposite1.AddChild(greatGrandchildTask1);
+
+            //greatGrandchildTask1.AddChild(greatGreatGrandchildTask1);
+
+            string iterationResult = root.Iterate();
+
+            Console.WriteLine(iterationResult);
+
+            Console.WriteLine("TEAM METHODS");
+
+            /*string sprintDays = sprint.PrintDayIdsAndDates();
+            Console.WriteLine(sprintDays);*/
+
+            Sprint sprint = new Sprint(new DateOnly(2023, 2, 1));
+
+            string sprintDays = sprint.GetStringDayIdsAndDates();
+            Console.WriteLine(sprintDays);
+
+            List<string> sprintDaysList = sprint.GetStringListDayIdsAndDates();
+            foreach (string day in sprintDaysList)
+            {
+                Console.WriteLine(day);
+            }
+
+
+            Team team2 = new Team(1, "Team Alpha");
+            team2.AddTeamMember(new TeamMember(1, "John"));
+            team2.AddTeamMember(new TeamMember(2, "Bob"));
+            team2.AddTeamMember(new TeamMember(3, "Jen"));
+            team2.AddTeamMember(new TeamMember(4, "Kim"));
+            team2.AddTeamMember(new TeamMember(5, "Ernie"));
+
+            string teamMembers = team2.GetStringTeamMembers();
+            Console.WriteLine(teamMembers);
+
+            List<string> membersList = team2.GetStringListTeamMembers();
+            foreach (string member in membersList)
+            {
+                Console.WriteLine(member);
+            }
 
             Console.ReadLine();
         }
