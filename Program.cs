@@ -107,17 +107,17 @@ namespace SprintTracker2
     }
 
     // Observer interface
-    public interface IIssueObserver
+    public interface IssueObserverIF
     {
         string UpdateIssue(Issue issue, string attributeName, string updatedValue);
     }
 
     // Observable interface
-    public interface IIssueObservable
+    public interface IssueObservableIF
     {
-        string Subscribe(IIssueObserver observer);
-        string SubscribeMultiple(List<IIssueObserver> observers);
-        string Unsubscribe(IIssueObserver observer);
+        string Subscribe(IssueObserverIF observer);
+        string SubscribeMultiple(List<IssueObserverIF> observers);
+        string Unsubscribe(IssueObserverIF observer);
     }
     public class Team
     {
@@ -193,7 +193,7 @@ namespace SprintTracker2
             return members.Contains(member);
         }
     }
-    public class TeamMember : IIssueObserver
+    public class TeamMember : IssueObserverIF
     {
         public int id { get; set; }
         public string name { get; set; }
@@ -227,15 +227,15 @@ namespace SprintTracker2
         {
             return $"{this.GetName()} received update: {issue.GetName()}'s {attributeName} is changed to {updatedValue}";
         }
-        // Implement Unsubscribe method from IIssueObserver
-        public void Unsubscribe(IIssueObservable observable)
+        // Implement Unsubscribe method from IssueObserverIF
+        public void Unsubscribe(IssueObservableIF observable)
         {
             observable.Unsubscribe(this);
         }
 
     }
 
-    public class Issue : IIssueObservable
+    public class Issue : IssueObservableIF
     {
         public enum Status
         {
@@ -250,7 +250,7 @@ namespace SprintTracker2
         //private DateOnly dateRaised;
         private Status currStatus;
         private TaskAbs parentTask;
-        private List<IIssueObserver> subscribers = new List<IIssueObserver>();
+        private List<IssueObserverIF> subscribers = new List<IssueObserverIF>();
 
 
         public Issue(string title, string desc, Status status, TaskAbs task)
@@ -328,7 +328,7 @@ namespace SprintTracker2
             if (newStatus == Status.Resolved)
             {
                 // Create a copy of the subscribers list
-                var subscribersCopy = new List<IIssueObserver>(subscribers);
+                var subscribersCopy = new List<IssueObserverIF>(subscribers);
 
                 // Notify observers
                 NotifyObservers("Status", newStatus.ToString());
@@ -345,7 +345,7 @@ namespace SprintTracker2
 
             this.currStatus = newStatus;
         }
-        public string Unsubscribe(IIssueObserver observer)
+        public string Unsubscribe(IssueObserverIF observer)
         {
             if (subscribers.Contains(observer))
             {
@@ -371,14 +371,14 @@ namespace SprintTracker2
             }
         }
 
-        /*public void SubscribeMultiple(List<IIssueObserver> observers)
+        /*public void SubscribeMultiple(List<IssueObserverIF> observers)
         {
             foreach (var observer in observers)
             {
                 Subscribe(observer);
             }
         }*/
-        public string SubscribeMultiple(List<IIssueObserver> observers)
+        public string SubscribeMultiple(List<IssueObserverIF> observers)
         {
             var results = "";
 
@@ -390,7 +390,7 @@ namespace SprintTracker2
             return results;
         }
 
-        public string Subscribe(IIssueObserver observer)
+        public string Subscribe(IssueObserverIF observer)
         {
             subscribers.Add(observer);
 
@@ -409,7 +409,7 @@ namespace SprintTracker2
             NotifyObservers("Status", Status.Resolved.ToString());
 
             // Create a copy of the subscribers list
-            var subscribersCopy = new List<IIssueObserver>(subscribers);
+            var subscribersCopy = new List<IssueObserverIF>(subscribers);
 
             // Unsubscribe all observers
             foreach (var subscriber in subscribersCopy)
@@ -519,7 +519,7 @@ namespace SprintTracker2
         private TaskAbs? parent;
         private TeamMember assignedMember;
         public List<Issue> issues { get; set; } = new List<Issue>();
-        private List<IIssueObserver> observers = new List<IIssueObserver>();
+        private List<IssueObserverIF> observers = new List<IssueObserverIF>();
 
         public TaskAbs()
         {
@@ -579,7 +579,7 @@ namespace SprintTracker2
             this.issues.Add(newIssueReport);
             newIssueReport.SetParentTask(this);
         }
-        public void AddIssue(Issue newIssueReport, List<IIssueObserver> members)
+        public void AddIssue(Issue newIssueReport, List<IssueObserverIF> members)
         {
             this.issues.Add(newIssueReport);
             newIssueReport.SetParentTask(this);
@@ -602,12 +602,12 @@ namespace SprintTracker2
             // Return the list of issues
             return this.issues;
         }
-        public void Subscribe(IIssueObserver observer)
+        public void Subscribe(IssueObserverIF observer)
         {
             observers.Add(observer);
         }
 
-        public void Unsubscribe(IIssueObserver observer)
+        public void Unsubscribe(IssueObserverIF observer)
         {
             observers.Remove(observer);
         }
@@ -914,7 +914,7 @@ namespace SprintTracker2
             Console.WriteLine(subscribeResult);
 
             // Subscribe multiple observers
-            List<IIssueObserver> observers = new List<IIssueObserver> { tom, mary };
+            List<IssueObserverIF> observers = new List<IssueObserverIF> { tom, mary };
             string subscribeMultipleResult = issue.SubscribeMultiple(observers);
             Console.WriteLine(subscribeMultipleResult);
 
