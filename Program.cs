@@ -198,11 +198,12 @@ namespace SprintTracker2
         private List<IIssueObserver> subscribers = new List<IIssueObserver>();
 
 
-        public Issue(string title, string desc, Status status)
+        public Issue(string title, string desc, Status status, TaskComponent task)
         {
             this.name = title;
             this.desc = desc;
             this.currStatus = status;
+            this.parentTask = task;
         }
 
         public string GetName()
@@ -291,10 +292,24 @@ namespace SprintTracker2
             subscribers.Add(observer);
         }
 
-        public void Unsubscribe(IIssueObserver observer)
+        /*public void Unsubscribe(IIssueObserver observer)
         {
             subscribers.Remove(observer);
+        }*/
+        public void Unsubscribe(IIssueObserver observer)
+        {
+            if (subscribers.Contains(observer))
+            {
+                subscribers.Remove(observer);
+                TeamMember unsubscribedMember = observer as TeamMember;
+
+                if (unsubscribedMember != null)
+                {
+                    Console.WriteLine($"{unsubscribedMember.name} was unsubscribed from {parentTask.GetAssignedMember().GetName()}'s issue report {GetName()}");
+                }
+            }
         }
+
 
         private void NotifyObservers(string attributeName, string updatedValue)
         {
@@ -604,7 +619,7 @@ namespace SprintTracker2
             Task task = new Task(joe, "Task 1", new DateOnly(2023, 12, 8));
 
             // Joe creates an issue and alerts Tom and Jane
-            Issue issue = new Issue("Bug", "Application crash", Issue.Status.New);
+            Issue issue = new Issue("Bug", "Application crash", Issue.Status.New, task);
             issue.Subscribe(tom);
             issue.Subscribe(jane);
 
