@@ -92,6 +92,7 @@ namespace SprintTracker2
     public interface IIssueObservable
     {
         void Subscribe(IIssueObserver observer);
+        void SubscribeMultiple(List<IIssueObserver> observers);
         void Unsubscribe(IIssueObserver observer);
     }
     public class Team
@@ -290,6 +291,10 @@ namespace SprintTracker2
         public void Subscribe(IIssueObserver observer)
         {
             subscribers.Add(observer);
+            if (observer is TeamMember teamMember)
+            {
+                Console.WriteLine($"{teamMember.GetName()} subscribed to the issue: {GetName()}");
+            }
         }
 
         /*public void Unsubscribe(IIssueObserver observer)
@@ -318,6 +323,32 @@ namespace SprintTracker2
                 observer.UpdateIssue(this, attributeName, updatedValue);
             }
         }
+
+        public void SubscribeMultiple(List<IIssueObserver> observers)
+        {
+            foreach (var observer in observers)
+            {
+                Subscribe(observer);
+            }
+        }
+
+        /*public void AlertAndUnsubscribeAll()
+        {
+            // Alert one last time that the issue is resolved
+            NotifyObservers("Status", Status.Resolved.ToString());
+
+            // Create a copy of the subscribers list
+            var subscribersCopy = new List<IIssueObserver>(subscribers);
+
+            // Unsubscribe all observers
+            foreach (var subscriber in subscribersCopy)
+            {
+                if (subscriber is TeamMember teamMember)
+                {
+                    teamMember.Unsubscribe(this);
+                }
+            }
+        }*/
     }
     class TaskDecorator : TaskComponent
     {
@@ -620,8 +651,12 @@ namespace SprintTracker2
 
             // Joe creates an issue and alerts Tom and Jane
             Issue issue = new Issue("Bug", "Application crash", Issue.Status.New, task);
-            issue.Subscribe(tom);
-            issue.Subscribe(jane);
+
+            List<IIssueObserver> sublist = new List<IIssueObserver> { tom, jane };
+
+            /*issue.Subscribe(tom);
+            issue.Subscribe(jane);*/
+            issue.SubscribeMultiple(sublist);
 
             // Joe updates the issue's name
             issue.SetName("Critical Bug");
@@ -633,8 +668,9 @@ namespace SprintTracker2
             issue.SetStatus(Issue.Status.Resolved);
 
             // Unsubscribe all subscribers
-            issue.Unsubscribe(tom);
-            issue.Unsubscribe(jane);
+            //issue.Unsubscribe(tom);
+            //issue.Unsubscribe(jane);
+            //issue.AlertAndUnsubscribeAll(); // same as doing "issue.SetStatus(Issue.Status.Resolved);"
 
             Console.ReadLine();
         }
