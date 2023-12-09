@@ -249,11 +249,11 @@ namespace SprintTracker2
         private string desc;
         //private DateOnly dateRaised;
         private Status currStatus;
-        private TaskComponent parentTask;
+        private TaskAbs parentTask;
         private List<IIssueObserver> subscribers = new List<IIssueObserver>();
 
 
-        public Issue(string title, string desc, Status status, TaskComponent task)
+        public Issue(string title, string desc, Status status, TaskAbs task)
         {
             this.name = title;
             this.desc = desc;
@@ -318,7 +318,7 @@ namespace SprintTracker2
             //ex:
             //myIssue.SetStatus(Issue.Status.New);
         }*/
-        public void SetParentTask(TaskComponent t)
+        public void SetParentTask(TaskAbs t)
         {
             this.parentTask = t;
         }
@@ -421,11 +421,11 @@ namespace SprintTracker2
             }
         }*/
     }
-    public class TaskDecorator : TaskComponent
+    public class TaskDecorator : TaskAbs
     {
-        private TaskComponent task;
+        private TaskAbs task;
 
-        public TaskDecorator(TaskComponent decoratedTask)
+        public TaskDecorator(TaskAbs decoratedTask)
         {
             this.task = decoratedTask;
         }
@@ -433,14 +433,14 @@ namespace SprintTracker2
         {
             return task.Iterate();
         }
-        public TaskComponent GetCore()
+        public TaskAbs GetCore()
         {
             return this.task;
         }
     }
     public class UrgentTaskDecorator : TaskDecorator
     {
-        public UrgentTaskDecorator(TaskComponent decoratedTask) : base(decoratedTask)
+        public UrgentTaskDecorator(TaskAbs decoratedTask) : base(decoratedTask)
         {
 
         }
@@ -449,11 +449,11 @@ namespace SprintTracker2
     {
         protected TimeOnly meetingTime;
 
-        public MeetingTaskDecorator(TaskComponent decoratedTask) : base(decoratedTask)
+        public MeetingTaskDecorator(TaskAbs decoratedTask) : base(decoratedTask)
         {
         }
 
-        public MeetingTaskDecorator(TaskComponent decoratedTask, TimeOnly meetingTime) : base(decoratedTask)
+        public MeetingTaskDecorator(TaskAbs decoratedTask, TimeOnly meetingTime) : base(decoratedTask)
         {
             this.meetingTime = meetingTime;
         }
@@ -478,7 +478,7 @@ namespace SprintTracker2
     {
         private List<TeamMember> attendees;
 
-        public SmallMeetingTaskDecorator(TaskComponent decoratedTask, TimeOnly meetingTime, List<TeamMember> members)
+        public SmallMeetingTaskDecorator(TaskAbs decoratedTask, TimeOnly meetingTime, List<TeamMember> members)
             : base(decoratedTask, meetingTime)
         {
             this.attendees = members;
@@ -493,7 +493,7 @@ namespace SprintTracker2
     {
         private List<Team> attendeeTeams;
 
-        public MassMeetingTaskDecorator(TaskComponent decoratedTask, TimeOnly meetingTime, List<Team> teams)
+        public MassMeetingTaskDecorator(TaskAbs decoratedTask, TimeOnly meetingTime, List<Team> teams)
             : base(decoratedTask, meetingTime)
         {
             this.attendeeTeams = teams;
@@ -511,21 +511,21 @@ namespace SprintTracker2
     }
 
     // Component
-    public abstract class TaskComponent
+    public abstract class TaskAbs
     {
         private int id;
         private string name;
         private DateOnly dueDate;
-        private TaskComponent? parent;
+        private TaskAbs? parent;
         private TeamMember assignedMember;
         public List<Issue> issues { get; set; } = new List<Issue>();
         private List<IIssueObserver> observers = new List<IIssueObserver>();
 
-        public TaskComponent()
+        public TaskAbs()
         {
         }
 
-        public TaskComponent(TeamMember assignedPerson, string taskName, DateOnly dueDate)
+        public TaskAbs(TeamMember assignedPerson, string taskName, DateOnly dueDate)
         {
             this.assignedMember = assignedPerson;
             this.name = taskName;
@@ -548,11 +548,11 @@ namespace SprintTracker2
         {
             this.name = newName;
         }
-        public TaskComponent? GetParent()
+        public TaskAbs? GetParent()
         {
             return this.parent;
         }
-        public void SetParent(TaskComponent parent)
+        public void SetParent(TaskAbs parent)
         {
             this.parent = parent;
         }
@@ -626,7 +626,7 @@ namespace SprintTracker2
     }
 
     // Leaf
-    class Task : TaskComponent
+    class Task : TaskAbs
     {
 
         public Task(TeamMember assignedPerson, string taskName, DateOnly dueDate)
@@ -644,9 +644,9 @@ namespace SprintTracker2
     }
 
     // Composite
-    public class TaskComposite : TaskComponent
+    public class TaskComposite : TaskAbs
     {
-        protected List<TaskComponent> subtasks = new List<TaskComponent>();
+        protected List<TaskAbs> subtasks = new List<TaskAbs>();
 
         public TaskComposite(TeamMember assignedPerson, string taskName, DateOnly dueDate)
         {
@@ -654,9 +654,9 @@ namespace SprintTracker2
             this.SetName(taskName);
             this.SetAssignedMember(assignedPerson);
             this.SetDueDate(dueDate);
-            this.subtasks = new List<TaskComponent>();
+            this.subtasks = new List<TaskAbs>();
         }
-        public TaskComposite(TeamMember assignedPerson, string taskName, DateOnly dueDate, List<TaskComponent> children)
+        public TaskComposite(TeamMember assignedPerson, string taskName, DateOnly dueDate, List<TaskAbs> children)
         {
             this.SetId();
             this.SetName(taskName);
@@ -665,7 +665,7 @@ namespace SprintTracker2
             this.subtasks = children;
         }
 
-        public void AddChild(TaskComponent task)
+        public void AddChild(TaskAbs task)
         {
             //subtasks.Add(task);
             task.SetParent(this);
@@ -676,7 +676,7 @@ namespace SprintTracker2
 
         }
 
-        public void RemoveChild(TaskComponent task)
+        public void RemoveChild(TaskAbs task)
         {
             subtasks.Remove(task);
         }
@@ -704,7 +704,7 @@ namespace SprintTracker2
             //return rootTaskCounter++;
         }
 
-        public static int GenerateId(TaskComponent task)
+        public static int GenerateId(TaskAbs task)
         {
             if (task.GetParent() == null)
             {
@@ -718,7 +718,7 @@ namespace SprintTracker2
                 return GenerateChildId(task.GetParent());
             }
         }
-        public static int GenerateChildId(TaskComponent parent)
+        public static int GenerateChildId(TaskAbs parent)
         {
 
             if (!childTaskCounters.ContainsKey(parent.GetId()))
