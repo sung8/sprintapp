@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 namespace SprintTracker2
 {
-    class Sprint
+    public class Sprint
     {
         private DateOnly startDate;
         public Dictionary<int, Day> Days { get; } = new Dictionary<int, Day>();
@@ -39,7 +39,7 @@ namespace SprintTracker2
         }
 
     }
-    class Day
+    public class Day
     {
         private string id;
         // either 
@@ -128,6 +128,11 @@ namespace SprintTracker2
             members.Add(member);
             member.assignedTeam = this;
         }
+        public List<TeamMember> GetTeamMembers()
+        {
+            return this.members;
+        }
+
 
         public void DisplayTeamMembers()
         {
@@ -372,9 +377,9 @@ namespace SprintTracker2
             }
         }*/
     }
-    class TaskDecorator : TaskComponent
+    public class TaskDecorator : TaskComponent
     {
-        TaskComponent task;
+        private TaskComponent task;
 
         public TaskDecorator(TaskComponent decoratedTask)
         {
@@ -382,7 +387,82 @@ namespace SprintTracker2
         }
         public override void Iterate()
         {
+            task.Iterate();
+        }
+        public TaskComponent GetCore()
+        {
+            return this.task;
+        }
+    }
+    public class UrgentTaskDecorator : TaskDecorator
+    {
+        public UrgentTaskDecorator(TaskComponent decoratedTask) : base(decoratedTask)
+        {
 
+        }
+    }
+    public abstract class MeetingTaskDecorator : TaskDecorator
+    {
+        protected TimeOnly meetingTime;
+
+        public MeetingTaskDecorator(TaskComponent decoratedTask) : base(decoratedTask)
+        {
+        }
+
+        public MeetingTaskDecorator(TaskComponent decoratedTask, TimeOnly meetingTime) : base(decoratedTask)
+        {
+            this.meetingTime = meetingTime;
+        }
+
+        public void SetMeetingTime(TimeOnly time)
+        {
+            this.meetingTime = time;
+        }
+
+        public TimeOnly GetMeetingTime()
+        {
+            return this.meetingTime;
+        }
+        public TeamMember GetHost()
+        {
+            return base.GetCore().GetAssignedMember();
+        }
+
+        public abstract List<TeamMember> GetAttendees();
+    }
+    public class SmallMeetingTaskDecorator : MeetingTaskDecorator
+    {
+        private List<TeamMember> attendees;
+
+        public SmallMeetingTaskDecorator(TaskComponent decoratedTask, TimeOnly meetingTime, List<TeamMember> members)
+            : base(decoratedTask, meetingTime)
+        {
+            this.attendees = members;
+        }
+
+        public override List<TeamMember> GetAttendees()
+        {
+            return this.attendees;
+        }
+    }
+    public class MassMeetingTaskDecorator : MeetingTaskDecorator
+    {
+        private List<Team> attendeeTeams;
+
+        public MassMeetingTaskDecorator(TaskComponent decoratedTask, TimeOnly meetingTime, List<Team> teams)
+            : base(decoratedTask, meetingTime)
+        {
+            this.attendeeTeams = teams;
+        }
+
+        public override List<TeamMember> GetAttendees()
+        {
+            var allAttendees = new List<TeamMember>();
+            foreach (var team in attendeeTeams)
+            {
+                allAttendees.AddRange(team.GetTeamMembers());
+            }
+            return allAttendees;
         }
     }
 
@@ -669,7 +749,8 @@ namespace SprintTracker2
             team.AddTeamMember(jane);
 
             // Create a task assigned to Joe
-            Task task = new Task(joe, "Task 1", new DateOnly(2023, 12, 8));
+            Task task = new Task(joe, "Coding Task", new DateOnly(2023, 12, 8));
+            Console.WriteLine("Task " + task.GetId() + " " + task.GetName()); 
 
             // Joe creates an issue and alerts Tom and Jane
             Issue issue = new Issue("Bug", "Application crash", Issue.Status.New, task);
@@ -696,6 +777,59 @@ namespace SprintTracker2
             //issue.Unsubscribe(tom);
             //issue.Unsubscribe(jane);
             //issue.AlertAndUnsubscribeAll(); // same as doing "issue.SetStatus(Issue.Status.Resolved);"
+
+
+            // Create a team member
+            TeamMember joey = new TeamMember(1, "Joey");
+
+            // Create a basic task
+            Task task2 = new Task(joey, "Important Task", new DateOnly(2023, 12, 8));
+
+            // Decorate the basic task with urgency
+            UrgentTaskDecorator urgentTask = new UrgentTaskDecorator(task2);
+
+            // Decorate the basic task with a small meeting
+            TimeOnly meetingTime = new TimeOnly(14, 30); // 2:30 PM
+            List<TeamMember> meetingAttendees = new List<TeamMember> { joe, tom, mary };
+            SmallMeetingTaskDecorator smallMeetingTask = new SmallMeetingTaskDecorator(task2, meetingTime, meetingAttendees);
+
+            // Decorate the basic task with a mass meeting
+            //List<Team> attendeeTeams = new List<Team> { new Team(2, "Team A", new List<TeamMember> { joe }) };
+            List<Team> attendeeTeams = new List<Team> { team };
+            MassMeetingTaskDecorator massMeetingTask = new MassMeetingTaskDecorator(task2, meetingTime, attendeeTeams);
+
+            // Test the iteration of the decorated tasks
+            Console.WriteLine("Original Task:");
+            task2.Iterate();
+
+            Console.WriteLine("\nUrgent Task:");
+            urgentTask.Iterate();
+
+            Console.WriteLine("\nSmall Meeting Task:");
+            smallMeetingTask.Iterate();
+            Console.WriteLine("Host of the meeting: " + smallMeetingTask.GetHost().GetName());
+            Console.WriteLine("Meeting Time: " + smallMeetingTask.GetMeetingTime());
+            Console.WriteLine("Attendees: " + string.Join(", ", smallMeetingTask.GetAttendees().Select(a => a.GetName())));
+
+            Console.WriteLine("\nMass Meeting Task:");
+            massMeetingTask.Iterate();
+            Console.WriteLine("Host of the meeting: " + massMeetingTask.GetHost().GetName());
+            Console.WriteLine("Meeting Time: " + massMeetingTask.GetMeetingTime());
+            Console.WriteLine("Attendees: " + string.Join(", ", massMeetingTask.GetAttendees().Select(a => a.GetName())));
+
+            // Decorate the Small Meeting Task with urgency
+            UrgentTaskDecorator urgentSmallMeetingTask = new UrgentTaskDecorator(smallMeetingTask);
+
+            // Get the core task
+            MeetingTaskDecorator coreTask = (MeetingTaskDecorator)urgentSmallMeetingTask.GetCore();
+
+            // Test the iteration of the decorated tasks
+            Console.WriteLine("\nUrgent Small Meeting Task:");
+            urgentSmallMeetingTask.Iterate();
+            Console.WriteLine("Host of the meeting: " + coreTask.GetHost().GetName());
+            Console.WriteLine("Meeting Time: " + coreTask.GetMeetingTime());
+            Console.WriteLine("Attendees: " + string.Join(", ", coreTask.GetAttendees().Select(a => a.GetName())));
+
 
             Console.ReadLine();
         }
