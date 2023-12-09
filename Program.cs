@@ -212,9 +212,20 @@ namespace SprintTracker2
             return this.name;
         }
 
-        public void SetName(string newName)
+        /*public void SetName(string newName)
         {
             this.name = newName;
+        }*/
+        public void SetName(string newName)
+        {
+            string oldName = this.name; // store the old value for comparison
+            this.name = newName;
+
+            // Notify observers about the name change
+            if (oldName != newName)
+            {
+                NotifyObservers("Name", newName);
+            }
         }
 
         public string GetDesc()
@@ -222,9 +233,20 @@ namespace SprintTracker2
             return this.desc;
         }
 
-        public void SetDesc(string newDesc)
+        /*public void SetDesc(string newDesc)
         {
             this.desc = newDesc;
+        }*/
+        public void SetDesc(string newDesc)
+        {
+            string oldDesc = this.desc; // store the old value for comparison
+            this.desc = newDesc;
+
+            // Notify observers about the description change
+            if (oldDesc != newDesc)
+            {
+                NotifyObservers("Description", newDesc);
+            }
         }
 
         public Status GetStatus()
@@ -660,6 +682,9 @@ namespace SprintTracker2
 
             // Joe updates the issue's name
             issue.SetName("Critical Bug");
+
+            // Joe updates the issue's description
+            issue.SetDesc("wow problemo");
 
             // Joe updates the status to Updated
             issue.SetStatus(Issue.Status.Updated);
